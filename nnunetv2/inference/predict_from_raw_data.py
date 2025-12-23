@@ -367,11 +367,12 @@ class nnUNetPredictor(object):
 
                 ofile = preprocessed['ofile']
                 if ofile is not None:
-                    print(f'\nPredicting {os.path.basename(ofile)}:')
+                    #print(f'\nPredicting {os.path.basename(ofile)}:')
+                    yes = "yes"
                 else:
                     print(f'\nPredicting image of shape {data.shape}:')
 
-                print(f'perform_everything_on_device: {self.perform_everything_on_device}')
+                #print(f'perform_everything_on_device: {self.perform_everything_on_device}')
 
                 properties = preprocessed['data_properties']
 
@@ -386,7 +387,7 @@ class nnUNetPredictor(object):
                 prediction = self.predict_logits_from_preprocessed_data(data).cpu().detach().numpy()
 
                 if ofile is not None:
-                    print('sending off prediction to background worker for resampling and export')
+                    #print('sending off prediction to background worker for resampling and export')
                     r.append(
                         export_pool.starmap_async(
                             export_prediction_from_logits,
@@ -395,7 +396,7 @@ class nnUNetPredictor(object):
                         )
                     )
                 else:
-                    print('sending off prediction to background worker for resampling')
+                    #print('sending off prediction to background worker for resampling')
                     r.append(
                         export_pool.starmap_async(
                             convert_predicted_logits_to_segmentation_with_correct_shape, (
@@ -406,9 +407,11 @@ class nnUNetPredictor(object):
                         )
                     )
                 if ofile is not None:
-                    print(f'done with {os.path.basename(ofile)}')
+                    #print(f'done with {os.path.basename(ofile)}')
+                    yes = "yes"
                 else:
-                    print(f'\nDone with image of shape {data.shape}:')
+                    #print(f'\nDone with image of shape {data.shape}:')
+                    yes = "yes"
             ret = [i.get()[0] for i in r]
 
         if isinstance(data_iterator, MultiThreadedAugmenter):
