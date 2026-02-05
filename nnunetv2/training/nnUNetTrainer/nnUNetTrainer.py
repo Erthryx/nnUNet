@@ -40,7 +40,8 @@ from torch import autocast, nn
 from torch import distributed as dist
 from torch._dynamo import OptimizedModule
 from torch.cuda import device_count
-from torch import GradScaler
+#HERE I CHANGED THE SOURCE CODE!!!
+from torch.cuda.amp import GradScaler
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 from nnunetv2.configuration import ANISO_THRESHOLD, default_num_processes
@@ -160,7 +161,8 @@ class nnUNetTrainer(object):
         self.num_input_channels = None  # -> self.initialize()
         self.network = None  # -> self.build_network_architecture()
         self.optimizer = self.lr_scheduler = None  # -> self.initialize
-        self.grad_scaler = GradScaler("cuda") if self.device.type == 'cuda' else None
+        #HERE I CHANGED THE SOURCE CODE!!!
+        self.grad_scaler = GradScaler() if self.device.type == 'cuda' else None
         self.loss = None  # -> self.initialize
 
         ### Simple logging. Don't take that away from me!
@@ -1135,11 +1137,21 @@ class nnUNetTrainer(object):
         if (current_epoch + 1) % self.save_every == 0 and current_epoch != (self.num_epochs - 1):
             self.save_checkpoint(join(self.output_folder, 'checkpoint_latest.pth'))
 
+
         # handle 'best' checkpointing. ema_fg_dice is computed by the logger and can be accessed like this
         if self._best_ema is None or self.logger.my_fantastic_logging['ema_fg_dice'][-1] > self._best_ema:
             self._best_ema = self.logger.my_fantastic_logging['ema_fg_dice'][-1]
             self.print_to_log_file(f"Yayy! New best EMA pseudo Dice: {np.round(self._best_ema, decimals=4)}")
             self.save_checkpoint(join(self.output_folder, 'checkpoint_best.pth'))
+
+        #HERE I CHANGED THE SOURCE CODE!!!
+        if (current_epoch+1) % 50 == 0:
+            src = join(self.output_folder, 'checkpoint_best.pth')
+            dst = join(self.output_folder, f'checkpoint_{current_epoch + 1}.pth')
+
+            if os.path.isfile(src):
+                shutil.copy(src, dst)
+
 
         if self.local_rank == 0:
             self.logger.plot_progress_png(self.output_folder)

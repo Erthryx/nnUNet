@@ -168,7 +168,7 @@ class Fixed3StagePlanner(ExperimentPlanner):
             'normalization_schemes': normalization_schemes,
             'use_mask_for_norm': mask_is_used_for_norm,
             'resampling_fn_data': resampling_data.__name__,
-            'resampling_fn_seg': ressampling_seg.__name__,
+            'resampling_fn_seg': resampling_seg.__name__,
             'resampling_fn_data_kwargs': resampling_data_kwargs,
             'resampling_fn_seg_kwargs': resampling_seg_kwargs,
             'resampling_fn_probabilities': resampling_softmax.__name__,
