@@ -1147,7 +1147,7 @@ class nnUNetTrainer(object):
         #HERE I CHANGED THE SOURCE CODE!!!
         if (current_epoch+1) % 50 == 0:
             src = join(self.output_folder, 'checkpoint_best.pth')
-            dst = join(self.output_folder, f'checkpoint_{current_epoch + 1}.pth')
+            dst = join(self.output_folder, f'checkpoint_epoch_{current_epoch + 1}.pth')
 
             if os.path.isfile(src):
                 shutil.copy(src, dst)
