@@ -347,28 +347,14 @@ class Trainer_150epochs_4_0expo_1_5ilr_2_1weights(nnUNetTrainer):
         super().__init__(plans, configuration, fold, dataset_json, device)
         self.num_epochs = 150
         self.temporal_cross_val = True
-        self.initial_lr = 0.015  
+        self.initial_lr = 0.015
+        self.weight_ce = 1
+        self.weight_dice = 2  
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.network.parameters(), self.initial_lr, weight_decay=self.weight_decay, momentum=0.99, nesterov=True)
         lr_scheduler = PolyLRScheduler(optimizer, self.initial_lr, self.num_epochs, exponent=4.0)
         return optimizer, lr_scheduler
-    def _build_loss(self):
-        if self.label_manager.has_regions:
-            loss = DC_and_BCE_loss({}, {'batch_dice': self.configuration_manager.batch_dice, 'do_bg': True, 'smooth': 1e-5, 'ddp': self.is_ddp},
-                weight_ce=1,
-                weight_dice=2,
-                use_ignore_label=self.label_manager.ignore_label is not None, dice_class=MemoryEfficientSoftDiceLoss
-            )
-        else:
-            loss = DC_and_CE_loss(
-                {'batch_dice': self.configuration_manager.batch_dice, 'smooth': 1e-5, 'do_bg': False, 'ddp': self.is_ddp}, {},
-                weight_ce=1,
-                weight_dice=2,
-                ignore_label=self.label_manager.ignore_label, dice_class=MemoryEfficientSoftDiceLoss
-            )
-        if self._do_i_compile():
-            loss.dc = torch.compile(loss.dc)
-        return loss
+
     
 
 
@@ -379,27 +365,13 @@ class Trainer_100epochs_2_0expo_2_0ilr_2_1weights(nnUNetTrainer):
         self.num_epochs = 100
         self.temporal_cross_val = True
         self.initial_lr = 0.02
+        self.weight_ce = 1
+        self.weight_dice = 2
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.network.parameters(), self.initial_lr, weight_decay=self.weight_decay, momentum=0.99, nesterov=True)
         lr_scheduler = PolyLRScheduler(optimizer, self.initial_lr, self.num_epochs, exponent=2.0)
         return optimizer, lr_scheduler
-    def _build_loss(self):
-        if self.label_manager.has_regions:
-            loss = DC_and_BCE_loss({}, {'batch_dice': self.configuration_manager.batch_dice, 'do_bg': True, 'smooth': 1e-5, 'ddp': self.is_ddp},
-                weight_ce=1,
-                weight_dice=2,
-                use_ignore_label=self.label_manager.ignore_label is not None, dice_class=MemoryEfficientSoftDiceLoss
-            )
-        else:
-            loss = DC_and_CE_loss(
-                {'batch_dice': self.configuration_manager.batch_dice, 'smooth': 1e-5, 'do_bg': False, 'ddp': self.is_ddp}, {},
-                weight_ce=1,
-                weight_dice=2,
-                ignore_label=self.label_manager.ignore_label, dice_class=MemoryEfficientSoftDiceLoss
-            )
-        if self._do_i_compile():
-            loss.dc = torch.compile(loss.dc)
-        return loss
+
 
 
 
@@ -409,28 +381,14 @@ class Trainer_150epochs_4_0expo_1_5ilr_3_1weights(nnUNetTrainer):
         super().__init__(plans, configuration, fold, dataset_json, device)
         self.num_epochs = 150
         self.temporal_cross_val = True
-        self.initial_lr = 0.015  
+        self.initial_lr = 0.015
+        self.weight_ce = 1
+        self.weight_dice = 3  
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.network.parameters(), self.initial_lr, weight_decay=self.weight_decay, momentum=0.99, nesterov=True)
         lr_scheduler = PolyLRScheduler(optimizer, self.initial_lr, self.num_epochs, exponent=4.0)
         return optimizer, lr_scheduler
-    def _build_loss(self):
-        if self.label_manager.has_regions:
-            loss = DC_and_BCE_loss({}, {'batch_dice': self.configuration_manager.batch_dice, 'do_bg': True, 'smooth': 1e-5, 'ddp': self.is_ddp},
-                weight_ce=1,
-                weight_dice=3,
-                use_ignore_label=self.label_manager.ignore_label is not None, dice_class=MemoryEfficientSoftDiceLoss
-            )
-        else:
-            loss = DC_and_CE_loss(
-                {'batch_dice': self.configuration_manager.batch_dice, 'smooth': 1e-5, 'do_bg': False, 'ddp': self.is_ddp}, {},
-                weight_ce=1,
-                weight_dice=3,
-                ignore_label=self.label_manager.ignore_label, dice_class=MemoryEfficientSoftDiceLoss
-            )
-        if self._do_i_compile():
-            loss.dc = torch.compile(loss.dc)
-        return loss
+
     
 
 
@@ -441,27 +399,13 @@ class Trainer_100epochs_2_0expo_2_0ilr_3_1weights(nnUNetTrainer):
         self.num_epochs = 100
         self.temporal_cross_val = True
         self.initial_lr = 0.02
+        self.weight_ce = 1
+        self.weight_dice = 3
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.network.parameters(), self.initial_lr, weight_decay=self.weight_decay, momentum=0.99, nesterov=True)
         lr_scheduler = PolyLRScheduler(optimizer, self.initial_lr, self.num_epochs, exponent=2.0)
         return optimizer, lr_scheduler
-    def _build_loss(self):
-        if self.label_manager.has_regions:
-            loss = DC_and_BCE_loss({}, {'batch_dice': self.configuration_manager.batch_dice, 'do_bg': True, 'smooth': 1e-5, 'ddp': self.is_ddp},
-                weight_ce=1,
-                weight_dice=3,
-                use_ignore_label=self.label_manager.ignore_label is not None, dice_class=MemoryEfficientSoftDiceLoss
-            )
-        else:
-            loss = DC_and_CE_loss(
-                {'batch_dice': self.configuration_manager.batch_dice, 'smooth': 1e-5, 'do_bg': False, 'ddp': self.is_ddp}, {},
-                weight_ce=1,
-                weight_dice=3,
-                ignore_label=self.label_manager.ignore_label, dice_class=MemoryEfficientSoftDiceLoss
-            )
-        if self._do_i_compile():
-            loss.dc = torch.compile(loss.dc)
-        return loss
+
 
 
 
@@ -472,28 +416,14 @@ class Trainer_150epochs_4_0expo_1_5ilr_4_1weights(nnUNetTrainer):
         super().__init__(plans, configuration, fold, dataset_json, device)
         self.num_epochs = 150
         self.temporal_cross_val = True
-        self.initial_lr = 0.015  
+        self.initial_lr = 0.015
+        self.weight_ce = 1
+        self.weight_dice = 4
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.network.parameters(), self.initial_lr, weight_decay=self.weight_decay, momentum=0.99, nesterov=True)
         lr_scheduler = PolyLRScheduler(optimizer, self.initial_lr, self.num_epochs, exponent=4.0)
         return optimizer, lr_scheduler
-    def _build_loss(self):
-        if self.label_manager.has_regions:
-            loss = DC_and_BCE_loss({}, {'batch_dice': self.configuration_manager.batch_dice, 'do_bg': True, 'smooth': 1e-5, 'ddp': self.is_ddp},
-                weight_ce=1,
-                weight_dice=4,
-                use_ignore_label=self.label_manager.ignore_label is not None, dice_class=MemoryEfficientSoftDiceLoss
-            )
-        else:
-            loss = DC_and_CE_loss(
-                {'batch_dice': self.configuration_manager.batch_dice, 'smooth': 1e-5, 'do_bg': False, 'ddp': self.is_ddp}, {},
-                weight_ce=1,
-                weight_dice=4,
-                ignore_label=self.label_manager.ignore_label, dice_class=MemoryEfficientSoftDiceLoss
-            )
-        if self._do_i_compile():
-            loss.dc = torch.compile(loss.dc)
-        return loss
+
     
 
 
@@ -504,24 +434,9 @@ class Trainer_100epochs_2_0expo_2_0ilr_4_1weights(nnUNetTrainer):
         self.num_epochs = 100
         self.temporal_cross_val = True
         self.initial_lr = 0.02
+        self.weight_ce = 1
+        self.weight_dice = 4
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.network.parameters(), self.initial_lr, weight_decay=self.weight_decay, momentum=0.99, nesterov=True)
         lr_scheduler = PolyLRScheduler(optimizer, self.initial_lr, self.num_epochs, exponent=2.0)
         return optimizer, lr_scheduler
-    def _build_loss(self):
-        if self.label_manager.has_regions:
-            loss = DC_and_BCE_loss({}, {'batch_dice': self.configuration_manager.batch_dice, 'do_bg': True, 'smooth': 1e-5, 'ddp': self.is_ddp},
-                weight_ce=1,
-                weight_dice=4,
-                use_ignore_label=self.label_manager.ignore_label is not None, dice_class=MemoryEfficientSoftDiceLoss
-            )
-        else:
-            loss = DC_and_CE_loss(
-                {'batch_dice': self.configuration_manager.batch_dice, 'smooth': 1e-5, 'do_bg': False, 'ddp': self.is_ddp}, {},
-                weight_ce=1,
-                weight_dice=4,
-                ignore_label=self.label_manager.ignore_label, dice_class=MemoryEfficientSoftDiceLoss
-            )
-        if self._do_i_compile():
-            loss.dc = torch.compile(loss.dc)
-        return loss
