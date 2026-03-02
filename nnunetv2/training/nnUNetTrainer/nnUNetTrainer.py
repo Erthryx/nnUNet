@@ -59,7 +59,7 @@ from nnunetv2.training.loss.deep_supervision import DeepSupervisionWrapper
 from nnunetv2.training.loss.dice import get_tp_fp_fn_tn, MemoryEfficientSoftDiceLoss
 from nnunetv2.training.lr_scheduler.polylr import PolyLRScheduler
 from nnunetv2.utilities.collate_outputs import collate_outputs
-from nnunetv2.utilities.crossval_split import generate_crossval_split
+from nnunetv2.utilities.crossval_split import generate_crossval_split, generate_temporal_split
 from nnunetv2.utilities.default_n_proc_DA import get_allowed_n_proc_DA
 from nnunetv2.utilities.file_path_utilities import check_workers_alive_and_busy
 from nnunetv2.utilities.get_network_from_plans import get_network_from_plans
@@ -149,9 +149,13 @@ class nnUNetTrainer(object):
         self.probabilistic_oversampling = False
         self.num_iterations_per_epoch = 250
         self.num_val_iterations_per_epoch = 50
-        self.num_epochs = 1000
+        self.num_epochs = 250
         self.current_epoch = 0
         self.enable_deep_supervision = True
+
+
+        # HERE I MODIFIED THE SOURCE CODE !!!
+        self.temporal_cross_val = False
 
         ### Dealing with labels/regions
         self.label_manager = self.plans_manager.get_label_manager(dataset_json)
@@ -578,7 +582,10 @@ class nnUNetTrainer(object):
             if not isfile(splits_file):
                 self.print_to_log_file("Creating new 5-fold cross-validation split...")
                 all_keys_sorted = list(np.sort(list(dataset.identifiers)))
-                splits = generate_crossval_split(all_keys_sorted, seed=12345, n_splits=5)
+                if self.temporal_cross_val:
+                    splits = generate_temporal_split(all_keys_sorted, n_splits=5)
+                else :
+                    splits = generate_crossval_split(all_keys_sorted, seed=12345, n_splits=5)
                 save_json(splits, splits_file)
 
             else:
@@ -1145,7 +1152,7 @@ class nnUNetTrainer(object):
             self.save_checkpoint(join(self.output_folder, 'checkpoint_best.pth'))
 
         #HERE I CHANGED THE SOURCE CODE!!!
-        if (current_epoch+1) % 50 == 0:
+        if (current_epoch+1) % 10 == 0:
             src = join(self.output_folder, 'checkpoint_best.pth')
             dst = join(self.output_folder, f'checkpoint_epoch_{current_epoch + 1}.pth')
 
