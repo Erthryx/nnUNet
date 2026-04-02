@@ -1,6 +1,7 @@
 import torch
 from nnunetv2.training.loss.dice import SoftDiceLoss, MemoryEfficientSoftDiceLoss
 from nnunetv2.training.loss.robust_ce_loss import RobustCrossEntropyLoss, TopKLoss
+from nnunetv2.training.loss.instanceFbetaLoss import InstanceFbetaLoss
 from nnunetv2.utilities.helpers import softmax_helper_dim1
 from torch import nn
 
@@ -154,3 +155,60 @@ class DC_and_topk_loss(nn.Module):
 
         result = self.weight_ce * ce_loss + self.weight_dice * dc_loss
         return result
+
+
+
+
+
+
+
+
+
+####
+#  Additional loss that needs to be tested
+####
+class DC_CE_iFbeta_Loss(nn.Module):
+    """
+    Combined loss: Dice + Cross-Entropy + Instance F-beta (soft)
+    CE uses integer targets, instance F-beta uses one-hot masks.
+    """
+    def __init__(self, soft_dice_kwargs=None, ce_kwargs=None, dice_class=None,
+                 weight_ce=1.0, weight_dice=1.0, weight_ifb=1.0, beta_ifb=0.75, ignore_label=None):
+        super().__init__()
+
+        
+
+        self.weight_ce = weight_ce
+        self.weight_dice = weight_dice
+        self.weight_ifb = weight_ifb
+        self.ignore_label = ignore_label
+
+        self.ce = RobustCrossEntropyLoss(**(ce_kwargs or {}))
+        self.dc = dice_class(**(soft_dice_kwargs or {})) if dice_class is not None else None
+        self.instance_fbeta = InstanceFbetaLoss(beta=beta_ifb)
+
+    def forward(self, net_output: torch.Tensor, target: torch.Tensor):
+        """
+        net_output: logits (B, C, H, W)
+        target: one-hot encoded for DC / instance F-beta (B, C, H, W)
+                integer labels for CE (B, 1, H, W)
+        """
+        # Dice loss (or Tversky)
+        dc_loss = self.dc(net_output, target) if self.dc is not None and self.weight_dice != 0 else 0
+
+        # CE loss uses integer labels
+        if self.weight_ce != 0:
+            if target.shape[1] > 1:
+                ce_target = target.argmax(dim=1, keepdim=True)  # convert one-hot to integer labels
+            else:
+                ce_target = target
+            ce_loss = self.ce(net_output, ce_target)
+        else:
+            ce_loss = 0
+
+        # Instance F-beta loss (soft one-hot)
+        ifb_loss = self.instance_fbeta(net_output, target) if self.weight_ifb != 0 else 0
+
+        # Combine
+        total_loss = self.weight_dice * dc_loss + self.weight_ce * ce_loss + self.weight_ifb * ifb_loss
+        return total_loss

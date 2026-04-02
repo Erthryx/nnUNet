@@ -61,6 +61,14 @@ class nnUNetTrainer_1000epochs_tempval(nnUNetTrainer):
         self.temporal_cross_val = True
 
 
+class nnUNetTrainer_1000epochs_crossval(nnUNetTrainer):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, device)
+        self.num_epochs = 1000
+        self.temporal_cross_val = False
+
+
 class Trainer_100epochs_1_2expo(nnUNetTrainer):
 
     def __init__(self, plans, configuration, fold, dataset_json,
@@ -339,6 +347,36 @@ class Trainer_150epochs_4_5expo_1_5ilr_(nnUNetTrainer):
 
 
 # Trainers with a dice and CE weight difference:
+class Trainer_150epochs_0_8expo_1_5ilr_2_1weights(nnUNetTrainer):
+    def __init__(self, plans, configuration, fold, dataset_json,
+                 device=torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, device)
+        self.num_epochs = 150
+        self.temporal_cross_val = True
+        self.initial_lr = 0.015
+        self.weight_ce = 1
+        self.weight_dice = 2  
+    def configure_optimizers(self):
+        optimizer = torch.optim.SGD(self.network.parameters(), self.initial_lr, weight_decay=self.weight_decay, momentum=0.99, nesterov=True)
+        lr_scheduler = PolyLRScheduler(optimizer, self.initial_lr, self.num_epochs, exponent=0.8)
+        return optimizer, lr_scheduler
+    
+
+
+class Trainer_150epochs_2_0expo_1_5ilr_2_1weights(nnUNetTrainer):
+    def __init__(self, plans, configuration, fold, dataset_json,
+                 device=torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, device)
+        self.num_epochs = 150
+        self.temporal_cross_val = True
+        self.initial_lr = 0.015
+        self.weight_ce = 1
+        self.weight_dice = 2  
+    def configure_optimizers(self):
+        optimizer = torch.optim.SGD(self.network.parameters(), self.initial_lr, weight_decay=self.weight_decay, momentum=0.99, nesterov=True)
+        lr_scheduler = PolyLRScheduler(optimizer, self.initial_lr, self.num_epochs, exponent=2.0)
+        return optimizer, lr_scheduler
+    
 
 
 class Trainer_150epochs_4_0expo_1_5ilr_2_1weights(nnUNetTrainer):
@@ -440,3 +478,93 @@ class Trainer_100epochs_2_0expo_2_0ilr_4_1weights(nnUNetTrainer):
         optimizer = torch.optim.SGD(self.network.parameters(), self.initial_lr, weight_decay=self.weight_decay, momentum=0.99, nesterov=True)
         lr_scheduler = PolyLRScheduler(optimizer, self.initial_lr, self.num_epochs, exponent=2.0)
         return optimizer, lr_scheduler
+
+    
+
+
+class Trainer_100epochs_1_4expo_1_0ilr_2_1weights(nnUNetTrainer):
+    def __init__(self, plans, configuration, fold, dataset_json,
+                 device=torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, device)
+        self.num_epochs = 100
+        self.temporal_cross_val = True
+        self.initial_lr = 0.01
+        self.weight_ce = 1
+        self.weight_dice = 2
+    def configure_optimizers(self):
+        optimizer = torch.optim.SGD(self.network.parameters(), self.initial_lr, weight_decay=self.weight_decay, momentum=0.99, nesterov=True)
+        lr_scheduler = PolyLRScheduler(optimizer, self.initial_lr, self.num_epochs, exponent=1.4)
+        return optimizer, lr_scheduler
+    
+    
+
+
+class Trainer_100epochs_1_4expo_1_0ilr_1_2weights(nnUNetTrainer):
+    def __init__(self, plans, configuration, fold, dataset_json,
+                 device=torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, device)
+        self.num_epochs = 100
+        self.temporal_cross_val = True
+        self.initial_lr = 0.01
+        self.weight_ce = 2
+        self.weight_dice = 1
+    def configure_optimizers(self):
+        optimizer = torch.optim.SGD(self.network.parameters(), self.initial_lr, weight_decay=self.weight_decay, momentum=0.99, nesterov=True)
+        lr_scheduler = PolyLRScheduler(optimizer, self.initial_lr, self.num_epochs, exponent=1.4)
+        return optimizer, lr_scheduler
+
+
+
+class Trainer_100epochs_2_0expo_2_0ilr_2_1weights_crossval(nnUNetTrainer):
+    def __init__(self, plans, configuration, fold, dataset_json,
+                 device=torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, device)
+        self.num_epochs = 100
+        self.temporal_cross_val = False
+        self.initial_lr = 0.02
+        self.weight_ce = 1
+        self.weight_dice = 2
+    def configure_optimizers(self):
+        optimizer = torch.optim.SGD(self.network.parameters(), self.initial_lr, weight_decay=self.weight_decay, momentum=0.99, nesterov=True)
+        lr_scheduler = PolyLRScheduler(optimizer, self.initial_lr, self.num_epochs, exponent=2.0)
+        return optimizer, lr_scheduler
+    
+
+
+class Trainer_150epochs_2_0expo_1_5ilr_2_1weights_crossval(nnUNetTrainer):
+    def __init__(self, plans, configuration, fold, dataset_json,
+                 device=torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, device)
+        self.num_epochs = 150
+        self.temporal_cross_val = False
+        self.initial_lr = 0.015
+        self.weight_ce = 1
+        self.weight_dice = 2  
+    def configure_optimizers(self):
+        optimizer = torch.optim.SGD(self.network.parameters(), self.initial_lr, weight_decay=self.weight_decay, momentum=0.99, nesterov=True)
+        lr_scheduler = PolyLRScheduler(optimizer, self.initial_lr, self.num_epochs, exponent=2.0)
+        return optimizer, lr_scheduler
+    
+
+### Implementation of the instance based F(beta=075) loss component
+
+class nnUNetTrainer_1000epochs_crossval_with_ifb_loss(nnUNetTrainer):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, device)
+        self.num_epochs = 1000
+        self.temporal_cross_val = False
+        self.is_custom_loss_function = True
+        #self.weight_ifb = 1
+        #self.beta_ifb=0.75
+
+
+class nnUNetTrainer_1000epochs_tempval_with_ifb_loss(nnUNetTrainer):
+    def __init__(self, plans: dict, configuration: str, fold: int, dataset_json: dict,
+                 device: torch.device = torch.device('cuda')):
+        super().__init__(plans, configuration, fold, dataset_json, device)
+        self.num_epochs = 1000
+        self.temporal_cross_val = True
+        self.is_custom_loss_function = True
+        #self.weight_ifb = 1
+        #self.beta_ifb=0.75
