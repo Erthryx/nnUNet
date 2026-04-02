@@ -54,7 +54,7 @@ from nnunetv2.training.data_augmentation.compute_initial_patch_size import get_p
 from nnunetv2.training.dataloading.nnunet_dataset import infer_dataset_class
 from nnunetv2.training.dataloading.data_loader import nnUNetDataLoader
 from nnunetv2.training.logging.nnunet_logger import nnUNetLogger
-from nnunetv2.training.loss.compound_losses import DC_and_CE_loss, DC_and_BCE_loss
+from nnunetv2.training.loss.compound_losses import DC_and_CE_loss, DC_and_BCE_loss, DC_CE_iFbeta_Loss
 from nnunetv2.training.loss.deep_supervision import DeepSupervisionWrapper
 from nnunetv2.training.loss.dice import get_tp_fp_fn_tn, MemoryEfficientSoftDiceLoss
 from nnunetv2.training.lr_scheduler.polylr import PolyLRScheduler
@@ -158,6 +158,9 @@ class nnUNetTrainer(object):
         self.temporal_cross_val = False
         self.weight_ce = 1
         self.weight_dice = 1
+        self.is_custom_loss_function = False
+        self.weight_ifb = 1
+        self.beta_ifb=0.75
 
         ### Dealing with labels/regions
         self.label_manager = self.plans_manager.get_label_manager(dataset_json)
@@ -407,6 +410,12 @@ class nnUNetTrainer(object):
             loss = DC_and_CE_loss({'batch_dice': self.configuration_manager.batch_dice,
                                    'smooth': 1e-5, 'do_bg': False, 'ddp': self.is_ddp}, {}, weight_ce=self.weight_ce, weight_dice=self.weight_dice,
                                   ignore_label=self.label_manager.ignore_label, dice_class=MemoryEfficientSoftDiceLoss)
+
+        #HERE I modified
+        if self.is_custom_loss_function:
+            loss = DC_CE_iFbeta_Loss(soft_dice_kwargs={'batch_dice': self.configuration_manager.batch_dice,'smooth': 1e-5,
+                'do_bg': True if self.label_manager.has_regions else False,'ddp': self.is_ddp},ce_kwargs={}, dice_class=MemoryEfficientSoftDiceLoss,
+                weight_dice=self.weight_dice, weight_ce=self.weight_ce, weight_ifb=self.weight_ifb, beta_ifb=self.beta_ifb, ignore_label=self.label_manager.ignore_label)
 
         if self._do_i_compile():
             loss.dc = torch.compile(loss.dc)
